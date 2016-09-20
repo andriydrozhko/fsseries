@@ -14,23 +14,34 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
       var url = window.location.href;
       var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
       var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
-      currentSerialSeries.serialId = serialId;
-      response(currentSerialSeries);
-
+      if(null != currentSerialSeries && undefined != currentSerialSeries) {
+        currentSerialSeries.serialId = serialId;
+        response(currentSerialSeries);
+      }
     }
 
   }
 });
-// if(serialPage.test(window.location.href)) {
-//   var url = window.location.href;
-//   var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
-//   var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
-//   currentSerialSeries.serialId = serialId;
-//
-//   if(null != currentSerialSeries && undefined != currentSerialSeries) {
-//
-//   }
-// }
+
+if(serialPage.test(window.location.href)) {
+  var url = window.location.href;
+  var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
+  var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
+  if(null != currentSerialSeries && undefined != currentSerialSeries) {
+    currentSerialSeries.serialId = serialId;
+    chrome.runtime.sendMessage({
+      from:    'content',
+      subject: 'showSeriesTrue',
+      series : currentSerialSeries
+    });
+  }
+} else {
+  chrome.runtime.sendMessage({
+    from:    'content',
+    subject: 'showSeriesTrue',
+    series : null
+  });
+}
 
 var count = 0;
 var interval = setInterval(function() {
@@ -47,7 +58,7 @@ var interval = setInterval(function() {
     }
     var savedSeries = JSON.parse(localStorage.getItem(fileData.item_id));
     if(null == savedSeries || undefined == savedSeries ||
-      (savedSeries.season != currentSeries.season) || (savedSeries.series != currentSeries.series)) {
+    (null != savedSeries && (savedSeries.season != currentSeries.season || savedSeries.series != currentSeries.series))) {
       localStorage.setItem(fileData.item_id, JSON.stringify(currentSeries));
     }
     clearInterval(interval)
