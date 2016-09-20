@@ -1,0 +1,27 @@
+{
+
+	"manifest_version": 2,
+
+	"name": "FSSeries",
+	"short_name": "FSSeries",
+	"description": "FSSeries",
+	"version": "0.1.0",
+
+
+	"permissions": [ "activeTab", "tabs" ],
+	"page_action" : {
+		"default_title" : "FSSeries"
+	},
+	"background": {
+		"page": "background.html"
+	},
+
+	"content_scripts": [
+	{
+		"matches": [ "http://fs.to/*" ],
+		"js": [ "js/contentscript.js" ],
+		"run_at": "document_end"
+	}
+	]
+
+}
