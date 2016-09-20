@@ -8,20 +8,24 @@
 	"version": "0.1.0",
 
 
-	"permissions": [ "activeTab", "tabs" ],
-	"page_action" : {
-		"default_title" : "FSSeries"
-	},
-	"background": {
-		"page": "background.html"
-	},
 
-	"content_scripts": [
-	{
+	"background": {
+    "persistent": false,
+    "scripts": ["js/background.js"]
+  },
+
+	"content_scripts": [{
 		"matches": [ "http://fs.to/*" ],
 		"js": [ "js/contentscript.js" ],
 		"run_at": "document_end"
-	}
-	]
+	}],
+
+	"browser_action": {
+    "default_icon": {
+      "30": "images/icon30.png"
+    },
+    "default_title": "FsSeries",
+    "default_popup": "popup.html"
+  }
 
 }

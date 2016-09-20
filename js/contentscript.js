@@ -2,22 +2,35 @@ var serialPageRegex = /serials\/$/;
 var serialPage = /serials\/.*?.html/;
 var serialView = /serials\/view\/.*?/;
 
+chrome.runtime.sendMessage({
+  from:    'content',
+  subject: 'showPageAction'
+});
 
-if(serialPageRegex.test(window.location.href)) {
-  console.log("serials list")
-}
-if(serialPage.test(window.location.href)) {
-  var url = window.location.href;
-  var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
-  var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
-  if(null != currentSerialSeries && undefined != currentSerialSeries) {
-    console.log("Вы остановились на " + currentSerialSeries.series + " серии, " + currentSerialSeries.season + " сезона")
-    console.log("Link: http://fs.to/video/serials/view/i" + serialId + "?play&file=" + currentSerialSeries.fileId)
+chrome.runtime.onMessage.addListener(function (msg, sender, response) {
+
+  if ((msg.from === 'popup') && (msg.subject === 'series')) {
+    if(serialPage.test(window.location.href)) {
+      var url = window.location.href;
+      var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
+      var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
+      currentSerialSeries.serialId = serialId;
+      response(currentSerialSeries);
+
+    }
+
   }
-}
-window.onhashchange = function() {
-
-}
+});
+// if(serialPage.test(window.location.href)) {
+//   var url = window.location.href;
+//   var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
+//   var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
+//   currentSerialSeries.serialId = serialId;
+//
+//   if(null != currentSerialSeries && undefined != currentSerialSeries) {
+//
+//   }
+// }
 
 var count = 0;
 var interval = setInterval(function() {
