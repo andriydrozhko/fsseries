@@ -12,12 +12,12 @@
 
 	"background": {
     "persistent": false,
-    "scripts": ["js/background.js"]
+    "scripts": ["lib/jquery-3.1.0.min.js", "js/background.js"]
   },
 
 	"content_scripts": [{
 		"matches": [ "http://fs.to/*" ],
-		"js": [ "js/contentscript.js" ],
+		"js": [ "lib/jquery-3.1.0.min.js", "js/contentscript.js" ],
 		"run_at": "document_end"
 	}],
 
@@ -26,7 +26,7 @@
       "30": "images/icon30.png"
     },
     "default_title": "FsSeries",
-    "default_popup": "popup.html"
+    "default_popup": "view/popup.html"
   }
 
 }

@@ -1,54 +1,35 @@
 var serialPageRegex = /serials\/$/;
 var serialPage = /serials\/.*?.html/;
 var serialView = /serials\/view\/.*?/;
-
-chrome.runtime.sendMessage({
-  from:    'content',
-  subject: 'showPageAction'
+var viewPageInterval;
+$(document).ready(function() {
+  processPage();
 });
 
-chrome.runtime.onMessage.addListener(function (msg, sender, response) {
-
-  if ((msg.from === 'popup') && (msg.subject === 'series')) {
-    if(serialPage.test(window.location.href)) {
-      var url = window.location.href;
-      var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
-      var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
-      if(null != currentSerialSeries && undefined != currentSerialSeries) {
-        currentSerialSeries.serialId = serialId;
-        response(currentSerialSeries);
-      }
+function processPage() {
+  cleanSerialInfo()
+  if(serialPage.test(window.location.href)) {
+    getSerialInfoForBadge();
+  }
+  var count = 0;
+  interval = setInterval(function() {
+    
+    if(serialView.test(window.location.href)) {
+      processViewPage();
+      clearInterval(interval)
     }
-
-  }
-});
-
-if(serialPage.test(window.location.href)) {
-  var url = window.location.href;
-  var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"))
-  var currentSerialSeries = JSON.parse(localStorage.getItem(serialId))
-  if(null != currentSerialSeries && undefined != currentSerialSeries) {
-    currentSerialSeries.serialId = serialId;
-    chrome.runtime.sendMessage({
-      from:    'content',
-      subject: 'showSeriesTrue',
-      series : currentSerialSeries
-    });
-  }
-} else {
-  chrome.runtime.sendMessage({
-    from:    'content',
-    subject: 'showSeriesTrue',
-    series : null
-  });
+    if(count > 20) {
+      count = 0;
+      clearInterval(interval)
+    }
+  }, 200);
 }
 
-var count = 0;
-var interval = setInterval(function() {
-  if(serialView.test(window.location.href)) {
+function processViewPage() {
     var url = window.location.href;
     var file = url.substring(url.indexOf("&file=") + 6, url.length)
-    var iframe = document.getElementsByTagName("iframe");
+    var iframe = $("iframe");
+    console.log(iframe)
     var fileData = JSON.parse(iframe[0].contentDocument.getElementById("f" + file).getAttribute("data-file")).fsData
     console.log(fileData)
     var currentSeries = {
@@ -61,10 +42,45 @@ var interval = setInterval(function() {
     (null != savedSeries && (savedSeries.season != currentSeries.season || savedSeries.series != currentSeries.series))) {
       localStorage.setItem(fileData.item_id, JSON.stringify(currentSeries));
     }
-    clearInterval(interval)
+}
+
+function getSerialInfoForBadge() {
+    var currentSerialSeries = getSerialInfoFromStorage();
+    if(null != currentSerialSeries && undefined != currentSerialSeries) {
+      currentSerialSeries.serialId = serialId;
+      chrome.runtime.sendMessage({
+        from:    'content',
+        subject: 'seriesInfo',
+        series : currentSerialSeries
+      });
+    } else {
+      cleanSerialInfo();
+    }
+}
+
+
+function cleanSerialInfo() {
+  chrome.runtime.sendMessage({
+    from:    'content',
+    subject: 'seriesInfo',
+    series : null
+  });
+}
+
+function getSerialInfoFromStorage() {
+  var url = window.location.href;
+  var serialId = url.substring(url.indexOf("serials/i") + 9, url.indexOf("-"));
+  return JSON.parse(localStorage.getItem(serialId));
+}
+
+chrome.runtime.onMessage.addListener(function (msg, sender, response) {
+  if ((msg.from === 'popup') && (msg.subject === 'series')) {
+    if(serialPage.test(window.location.href)) {
+      var currentSerialSeries = getSerialInfoFromStorage();
+      if(null != currentSerialSeries && undefined != currentSerialSeries) {
+        currentSerialSeries.serialId = serialId;
+        response(currentSerialSeries);
+      }
+    }
   }
-  if(count > 20) {
-    count = 0;
-    clearInterval(interval)
-  }
-}, 200);
+});
