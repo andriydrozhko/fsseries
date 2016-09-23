@@ -3,6 +3,8 @@ function setSeriesInfo(series) {
   if(null != series && undefined != series) {
     document.getElementById("series-info").textContent  = "Вы остановились на " + series.series + " серии, " + series.season + " сезона";
     document.getElementById("link-to-series").href  = "http://fs.to/video/serials/view/i" + series.serialId + "?play&file=" + series.fileId;
+  } else {
+    //TODO add message 'you dont see this serial'
   }
 }
 
