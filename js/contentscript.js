@@ -16,6 +16,7 @@ function processPage() {
 
     if(serialView.test(window.location.href)) {
       processViewPage();
+      processChangeSerie();
       clearInterval(interval)
     }
     if(count > 20) {
@@ -28,7 +29,6 @@ function processPage() {
 function processViewPage() {
     var url = window.location.href;
     var file = url.substring(url.indexOf("&file=") + 6, url.length)
-    var iframe = $("iframe");
     var fileData = JSON.parse($($("iframe").contents().find("#f" + file)).attr("data-file")).fsData
     var currentSeries = {
       season : fileData.file_season,
@@ -37,8 +37,6 @@ function processViewPage() {
       serialId : fileData.item_id
     }
     var savedSeries = JSON.parse(localStorage.getItem(fileData.item_id));
-    console.log(currentSeries)
-    console.log(savedSeries)
     if(null == savedSeries || undefined == savedSeries ||
     (null != savedSeries && (savedSeries.season != currentSeries.season || savedSeries.series != currentSeries.series))) {
       localStorage.setItem(fileData.item_id, JSON.stringify(currentSeries));
@@ -46,10 +44,23 @@ function processViewPage() {
     }
 }
 
+function processChangeSerie() {
+  var serieChangeButtons = $("iframe").contents().find(".b-aplayer__popup-series-episodes")
+  console.log(serieChangeButtons)
+
+}
+
 function getSerialInfoForBadge() {
     var currentSerialSeries = getSerialInfoFromStorage();
-    console.log(currentSerialSeries)
+    $(".b-tab-item__title-inner").css("display", "inline-block");
+    $(".b-trailer-poster").css("top", "98px")
+    // $(".l-header__wrap").append("<div class='fsseries-info' style='width:100px;height: 42px;'>TEXT</div>")
     if(null != currentSerialSeries && undefined != currentSerialSeries) {
+      $(".b-tab-item__title").append(
+        "<div style='display:inline-block;font-size: 12px;float:right;'> " +
+          "<span style='display: block;'>Остановились: Сезон: " + currentSerialSeries.season +", серия: " + currentSerialSeries.series + "</span>" +
+          "<a style='cursor:pointer;' href = 'http://fs.to/video/serials/view/i" + currentSerialSeries.serialId + "?play&file=" + currentSerialSeries.fileId + "'>Перейти к серии</a>" +
+        "</div>");
       chrome.runtime.sendMessage({
         from:    'content',
         subject: 'seriesInfo',
@@ -57,6 +68,10 @@ function getSerialInfoForBadge() {
       });
     } else {
       cleanSerialInfo();
+      $(".b-tab-item__title").append(
+        "<div style='display:inline-block;font-size: 12px;float:right;max-width: 120px;'> " +
+          "<span style='display: block;'>Вы еще не смотрели этот сериал.</span>" +
+        "</div>");
     }
 }
 
@@ -77,13 +92,10 @@ function getSerialInfoFromStorage() {
   } else {
     serialId = url.substring(url.indexOf("view/i") + 6, url.indexOf("?"));
   }
-
-  console.log(serialId)
   return JSON.parse(localStorage.getItem(serialId));
 }
 
 chrome.runtime.onMessage.addListener(function (msg, sender, response) {
-  console.log(msg)
   if ((msg.from === 'popup') && (msg.subject === 'series')) {
       var currentSerialSeries = getSerialInfoFromStorage();
       if(null != currentSerialSeries && undefined != currentSerialSeries) {
